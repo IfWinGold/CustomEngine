@@ -24,21 +24,43 @@
 class SwapChain
 {
 public:
-	void Init(const WindowInfo& info, ComPtr<IDXGIFactory> dxgi, ComPtr<ID3D12CommandQueue> cmdQueue);
+	void Init(const WindowInfo& info, ComPtr<ID3D12Device> device,ComPtr<IDXGIFactory> dxgi, ComPtr<ID3D12CommandQueue> cmdQueue);
 	void Present();
 	void SwapIndex();
 
 	ComPtr<IDXGISwapChain> GetSwapChain() { return _swapChain; }
-	ComPtr<ID3D12Resource> GetRenderTarget(int32 index) { return _renderTargets[index]; }
+	ComPtr<ID3D12Resource> GetRenderTarget(int32 index) { return _rtvBuffer[index]; }
 
-	uint32 GetCurrentBackBufferIndex() { return _backBufferIndex; }
-	ComPtr<ID3D12Resource> GetCurrentBackBufferResource() { return _renderTargets[_backBufferIndex]; }
+	ComPtr<ID3D12Resource> GetBackRTVBuffer() { return _rtvBuffer[_backBufferIndex]; }
 
+	D3D12_CPU_DESCRIPTOR_HANDLE GetBackRTV() { return _rtvHandle[_backBufferIndex]; }
+
+private:
+	void CreateSwapChain(const WindowInfo& info, ComPtr<IDXGIFactory> dxgi, ComPtr<ID3D12CommandQueue> cmdQueue);
+
+//<DescriptorHeap>
+// [기안서]
+// 외주를 맡길 때 이런 저런 정보들을 같이 넘겨줘야 하는데,
+// 아무 형태로나 요청하면 못 알아먹는다.
+// - 각종 리소스를 어떤 용도로 사용하는지 꼼꼼하게 적어서 넘겨주는 용도
+// DX11 에서는 View라고 불렸음.
+
+// 즉 SwapChain의 Resource(버퍼)를 바로 넘겨주는게 아닌
+// DescriptorHeap을 사용하여서 보내줌
+// GPU가 알아들을 수 있게 래핑하는 느낌
+	void CreateRTV(ComPtr<ID3D12Device> device);
 	 
 private:
 	ComPtr<IDXGISwapChain>	_swapChain;
-	ComPtr<ID3D12Resource>	_renderTargets[SWAP_CHAIN_BUFFER_COUNT]; //그릴 특수 종이 , Buffer
+	ComPtr<ID3D12Resource>	_rtvBuffer[SWAP_CHAIN_BUFFER_COUNT]; //그릴 특수 종이 , Buffer
 	uint32					_backBufferIndex = 0;
+
+
+
+	// - Descriptor Heap에는 여러가지 View가 있다.
+// - 각자의 View는 Resource를 설명하는 용도로 활용되고 있다.
+	ComPtr<ID3D12DescriptorHeap>	_rtvHeap;	
+	D3D12_CPU_DESCRIPTOR_HANDLE		_rtvHandle[SWAP_CHAIN_BUFFER_COUNT];
 	
 };
 
