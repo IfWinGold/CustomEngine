@@ -61,6 +61,11 @@ struct Vertex
 	Vec4 color; //Vertex Color
 };
 
+struct Transform
+{
+	Vec4 offset;
+};
+
 
 #define DEVICE GEngine->GetDevice()->GetDevice()
 #define CMD_LIST GEngine->GetCmdQueue()->GetCmdList()

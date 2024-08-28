@@ -13,6 +13,7 @@ void Mesh::Init(vector<Vertex>& vec)
 	D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
 
 	// GPU에 버퍼를 저장할 공간을 _vertexBuffer에 할당받음 
+	// DEVICE에 대해서 이루어지는 일들은 커맨드큐가 아닌 당장 이루어지는 ..
 	// Resource를 만들는 단계
 	DEVICE->CreateCommittedResource(
 		&heapProperty,
@@ -42,5 +43,12 @@ void Mesh::Render()
 {
 	CMD_LIST->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	CMD_LIST->IASetVertexBuffers(0, 1, &_vertexBufferView); // Slot: (0~15)
+
+	//TODO
+	// 1) Buffer에다가 데이터 세팅
+	// 2) Buffer의 주소를 register 에다가 전송(주소를 포인터 형식으로)
+	//CMD_LIST->SetGraphicsRootConstantBufferView(0,)
+	GEngine->GetCB()->PushData(0, &_transform, sizeof(_transform));
+	GEngine->GetCB()->PushData(1, &_transform, sizeof(_transform));
 	CMD_LIST->DrawInstanced(_vertexCount, 1, 0, 0);
 }
